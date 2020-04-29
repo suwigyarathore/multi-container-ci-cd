@@ -1,0 +1,17 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t suwi/react-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true suwi/react-test npm run test
+after_success:
+  - docker build -t suwi/multi-nginx ./nginx
+  - docker build -t suwi/multi-server ./server
+  - docker build -t suwi/multi-worker ./worker
+  - docker build -t suwi/multi-client ./client
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push suwi/multi-nginx
+  - docker push suwi/multi-server
+  - docker push suwi/multi-worker
+  - docker push suwi/multi-client
